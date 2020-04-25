@@ -62,7 +62,7 @@ Projection<-function(Day_upto)
 
 ui <- fluidPage(
   
-  titlePanel("Projection of confirmed covid cases in Ontario"),
+  titlePanel("Projection of confirmed covid-19 cases in Ontario"),
   
   sidebarLayout(
     sidebarPanel(
