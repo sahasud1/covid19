@@ -4,6 +4,7 @@ library(tidyverse)
 library(dplyr)
 library(data.table)
 library(mgcv)
+library(forecast)
 
 library(directlabels)
 library(ggthemes)
@@ -17,16 +18,16 @@ library(shinydashboard)
 on_confirmed <- fread('https://data.ontario.ca/dataset/f4112442-bdc8-45d2-be3c-12efae72fb27/resource/455fd63b-603d-4608-8216-7d8647f43350/download/conposcovidloc.csv')
 on_case_by_date<-on_confirmed%>%select(Date=Accurate_Episode_Date)%>%group_by(Date)%>%summarise(newcase=n())
 on_data<-on_case_by_date%>%mutate(Date=as.Date(Date))%>%filter(Date >= as.Date("2020-02-15"))
-#date_seq <- seq(as.Date("2020-01-01"), as.Date(Sys.Date()-1) ,by = "day")
-#date_data<-data.frame(Date=date_seq,Day=as.numeric(date_seq-as.Date("2019-12-31")))
-#on_data<-left_join(date_data, on_case_by_date, by=c("Date"))
-#on_data<-on_data%>%mutate(newcase=ifelse(is.na(newcase),0,newcase),totalcases=cumsum(newcase),previous=lag(newcase))
-#on_data<-on_data%>%mutate(previous=ifelse(is.na(previous),0,previous))
-on_data<-on_data%>%mutate(Day=as.numeric(as.Date(Date)-as.Date("2020-02-14")))
+on_data<-on_data%>%mutate(Day=as.numeric(as.Date(Date)-as.Date("2020-02-14")),cum_case=cumsum(newcase))
+#case<-ts(on_data[,4],start=1,end=60,frequency=1) # creating time-series data
 
+#fit <- tslm(log(case) ~ trend)
+#fc<-forecast(fit, h=5)
+#plot(fc)
+#summary(fit)
 
-p1<-ggplot(on_data,aes(Date,newcase))+theme_bw()
-p1+geom_point(size=0.5)+ylab("Confirmed cases")+xlab("Date")
+#plot(forecast(fit, fan = TRUE))
+
 
 b2<-gam(newcase ~ s(Day,bs="tp",k=20),family=nb(),data = on_data[1:60,],method = "REML")
 
@@ -51,7 +52,7 @@ Projection<-function(Day_upto)
       geom_point(aes(x=Day,y=Predicted_cases),data=newdata)+
       scale_x_continuous(breaks=c(0,20,40,60), labels=c("Feb 15", "Mar 05", "Mar 25", "Apr 14"))+
       annotate("text",x=newdata$Day[nrow(newdata)]+2,y=ceiling(newdata$Predicted_cases[nrow(newdata)]+60),label = ceiling(newdata$Predicted_cases[nrow(newdata)]))+
-      theme(axis.title=element_text(size=14,face="bold"))+ylab("Confirmed covid cases in Ontario")+xlab("Date")
+      theme(axis.title=element_text(size=14,face="bold"))+ylab("Confirmed covid-19 cases in Ontario")+xlab("Date")
     print(p)
   }
   else{print("projection is not available beyond 5 days")}
@@ -96,7 +97,7 @@ ui <- fluidPage(
       br(),
       hr(),
       div("The actual cases are presented using blue lines and projections are in red. Last projected cases are printed in the plot. Note that it takes about a week for Ontario officials to confirm test results. Thus, the last week's counts are different compared to other sources.
-          The projections are estimated using a simple Generalized Additive model with only one covariate, wihch is Time. The data is available ", 
+          The projections are estimated using a simple Generalized Additive model with only one covariate, wihch is Time. The performance of the model can be improved by adding important convariates into it.  The data is available ", 
           shiny::a("here.", href = "https://data.ontario.ca/dataset/f4112442-bdc8-45d2-be3c-12efae72fb27/resource/455fd63b-603d-4608-8216-7d8647f43350/download/conposcovidloc.csv")
       ), 
       p(),
