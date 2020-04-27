@@ -1,4 +1,6 @@
 library(shiny)
+library(DT)
+library(fs)
 library(gridExtra)
 library(tidyverse)
 library(dplyr)
@@ -14,8 +16,31 @@ library(quadprog)
 library(shinyWidgets)
 library(shinydashboard)
 #install.packages(c('Rttf2pt1','directlables','extrafont','extrafontdb','flexdashboard','gdtools','ggtheme','bexbin','hrbrthemes','metathis'))
+source("utils.R")
 
-on_confirmed <- fread('https://data.ontario.ca/dataset/f4112442-bdc8-45d2-be3c-12efae72fb27/resource/455fd63b-603d-4608-8216-7d8647f43350/download/conposcovidloc.csv')
+
+# Read the data
+DownloadCOVIDdata<-function(){
+  download.file(
+    url = "https://data.ontario.ca/dataset/f4112442-bdc8-45d2-be3c-12efae72fb27/resource/455fd63b-603d-4608-8216-7d8647f43350/download/conposcovidloc.csv",
+    destfile = "data/OntarioConfirmed.csv")
+}
+  
+UpdateMyData<-function(){
+  T_refresh = 12 # hours 
+  if(!dir_exists("data")){
+    dir.create("data")
+    DownloadCOVIDdata()
+  }
+  else if((!file.exists("data/OntarioConfirmed.csv") || as.double(Sys.time()- file_info("data/OntarioConfirmed.csv")$change_time,units="hours") > T_refresh)){
+    DownloadCOVIDdata()
+  }  
+}
+  
+UpdateMyData() # updating the data in every 12 hours
+
+on_confirmed<-read_csv("data/OntarioConfirmed.csv")
+#on_confirmed <- fread('https://data.ontario.ca/dataset/f4112442-bdc8-45d2-be3c-12efae72fb27/resource/455fd63b-603d-4608-8216-7d8647f43350/download/conposcovidloc.csv')
 on_case_by_date<-on_confirmed%>%select(Date=Accurate_Episode_Date)%>%group_by(Date)%>%summarise(newcase=n())
 on_data<-on_case_by_date%>%mutate(Date=as.Date(Date))%>%filter(Date >= as.Date("2020-02-15"))
 on_data<-on_data%>%mutate(Day=as.numeric(as.Date(Date)-as.Date("2020-02-14")),cum_case=cumsum(newcase))
