@@ -122,9 +122,11 @@ ui <- fluidPage(
       br(),
       hr(),
       div("The actual cases are presented using blue lines and projections are in red. Last projected cases are printed in the plot. Note that it takes about a week for Ontario officials to confirm test results. Thus, the last week's counts are different compared to other sources.
-          The projections are estimated using a simple Generalized Additive model with only one covariate, wihch is Time. The performance of the model can be improved by adding important convariates into it.  The data is available ", 
+          The projections are estimated using a simple Generalized Additive model with only one covariate, wihch is Time. The performance of the model can be improved by adding important convariates into it.  The data is available for download ", 
           shiny::a("here.", href = "https://data.ontario.ca/dataset/f4112442-bdc8-45d2-be3c-12efae72fb27/resource/455fd63b-603d-4608-8216-7d8647f43350/download/conposcovidloc.csv")
-      ), 
+      ),
+      div("Data source is ", shiny::a("here.", href = "https://data.ontario.ca/dataset/") 
+          ),
       p(),
       br()
     )

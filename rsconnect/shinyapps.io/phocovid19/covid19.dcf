@@ -5,6 +5,6 @@ account: phocovid19
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2183135
-bundleId: 3064464
+bundleId: 3073369
 url: https://phocovid19.shinyapps.io/covid19/
-when: 1587843827.69073
+when: 1588014927.97258
